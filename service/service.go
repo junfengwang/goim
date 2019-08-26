@@ -1,4 +1,4 @@
-package server
+package service
 
 import (
 	"sync"
@@ -13,9 +13,9 @@ type Socketserver struct {
 	heatbeatTimeout time.Duration
 	status          int
 	stopCh          chan error
-	onMessage       func(*session, *message)
-	onConnect       func(*session)
-	onDisConnect    func(*session)
+	onMessage       func(*Session, *Message)
+	onConnect       func(*Session)
+	onDisConnect    func(*Session)
 }
 
 
@@ -35,6 +35,10 @@ func NewSocketserver(laddr string) (*Socketserver, error) {
 	}
 
 	return s, nil
+}
+
+func (s *Socketserver) RegisterOnMessage(handler func (*session, *Message) ) {
+
 }
 
 func (s *Socketserver) StartAccept() {
