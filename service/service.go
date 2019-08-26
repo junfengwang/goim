@@ -5,6 +5,7 @@ import (
 	"net"
 	"time"
 	"fmt"
+	"context"
 )
 
 type Socketserver struct {
@@ -37,11 +38,30 @@ func NewSocketserver(laddr string) (*Socketserver, error) {
 	return s, nil
 }
 
-func (s *Socketserver) RegisterOnMessage(handler func (*session, *Message) ) {
-
+func (s *Socketserver) RegisterOnMessage(handler func (*Session, *Message) ) {
+	s.onMessage = handler
 }
 
-func (s *Socketserver) StartAccept() {
+func (s *Socketserver) ServStar() {
+	ctx, cancel := context.WithCancel(context.Background())
+
+	defer func() {
+		cancel()
+
+		s.listener.Close()
+	}()
+
+	go s.StartAccept(ctx)
+
+	for {
+		select {
+			case <-s.stopCh:
+				return
+		}
+	}
+}
+
+func (s *Socketserver) StartAccept(ctx context.Context) {
 	for {
 		conn, err := s.listener.Accept()
 		if err != nil {
