@@ -19,7 +19,7 @@ type Socketserver struct {
 	onDisConnect    func(*Session)
 }
 
-
+//启动服务监听
 func NewSocketserver(laddr string) (*Socketserver, error) {
 
 	listener, err := net.Listen("tcp", laddr)
@@ -38,6 +38,7 @@ func NewSocketserver(laddr string) (*Socketserver, error) {
 	return s, nil
 }
 
+//注册接收消息函数
 func (s *Socketserver) RegisterOnMessage(handler func (*Session, *Message) ) {
 	s.onMessage = handler
 }
@@ -61,11 +62,27 @@ func (s *Socketserver) ServStar() {
 	}
 }
 
+//接收连接
 func (s *Socketserver) StartAccept(ctx context.Context) {
 	for {
 		conn, err := s.listener.Accept()
 		if err != nil {
 			return
+		}
+
+		go s.ConnectHandler(ctx, conn)
+	}
+}
+
+func (s *Socketserver) ConnectHandler(ctx context.Context, conn net.Conn) {
+
+
+	for {
+		select {
+			case <- ctx.Done():
+				return
+			default:
+
 		}
 	}
 }
