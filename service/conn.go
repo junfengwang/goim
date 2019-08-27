@@ -12,3 +12,7 @@ type Conn struct {
 	doneCh    chan error
 	hbTimeout time.Duration
 }
+
+func NewConn() {
+
+}
