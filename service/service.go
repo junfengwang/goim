@@ -74,15 +74,32 @@ func (s *Socketserver) StartAccept(ctx context.Context) {
 	}
 }
 
-func (s *Socketserver) ConnectHandler(ctx context.Context, conn net.Conn) {
+func (s *Socketserver) ConnectHandler(ctx context.Context, c net.Conn) {
+	conn := NewConn(c, s.heatbeatTimeout)
+	session := NewSession(conn)
+	s.sessions.Store(session.uid, session)
 
+	connCtx, cancel := context.WithCancel(ctx)
+
+	defer func() {
+		cancel()
+		c.Close()
+		s.sessions.Delete(session.uid)
+	}()
+
+	go conn.WriteHandler(connCtx)
 
 	for {
 		select {
 			case <- ctx.Done():
+				return
+			case <- conn.doneCh:
 				return
 			default:
 
 		}
 	}
 }
+
+
+
